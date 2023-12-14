@@ -1,47 +1,12 @@
 package com.sri.jfreecell;
 
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.ABOUT;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.EXIT;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.HELP;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.HINT;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.NEW;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.OPTIONS;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.RESTART;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.SELECT;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.STATISTICS;
-import static com.sri.jfreecell.event.MenuActionListener.MenuAction.UNDO;
-import static com.sri.jfreecell.util.FileUtil.STATE_FILE;
-import static com.sri.jfreecell.util.FileUtil.*;
-import static com.sri.jfreecell.util.FileUtil.saveObjecttoFile;
-import static java.awt.event.ActionEvent.ALT_MASK;
-import static java.awt.event.ActionEvent.CTRL_MASK;
-import static java.awt.event.KeyEvent.VK_A;
-import static java.awt.event.KeyEvent.VK_F1;
-import static java.awt.event.KeyEvent.VK_F2;
-import static java.awt.event.KeyEvent.VK_F3;
-import static java.awt.event.KeyEvent.VK_F4;
-import static java.awt.event.KeyEvent.VK_F5;
-import static java.awt.event.KeyEvent.VK_G;
-import static java.awt.event.KeyEvent.VK_H;
-import static java.awt.event.KeyEvent.VK_J;
-import static java.awt.event.KeyEvent.VK_N;
-import static java.awt.event.KeyEvent.VK_O;
-import static java.awt.event.KeyEvent.VK_R;
-import static java.awt.event.KeyEvent.VK_S;
-import static java.awt.event.KeyEvent.VK_T;
-import static java.awt.event.KeyEvent.VK_U;
-import static java.awt.event.KeyEvent.VK_X;
-import static java.awt.event.KeyEvent.VK_Z;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import static javax.swing.JOptionPane.PLAIN_MESSAGE;
-import static javax.swing.JOptionPane.showInputDialog;
-import static javax.swing.JOptionPane.showMessageDialog;
+import com.sri.jfreecell.event.GameEvents;
+import com.sri.jfreecell.event.GameListenerImpl;
+import com.sri.jfreecell.event.MenuActionListener;
+import com.sri.jfreecell.util.ImageUtil;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -49,27 +14,12 @@ import java.net.BindException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-
-import com.sri.jfreecell.event.GameEvents;
-import com.sri.jfreecell.event.GameListenerImpl;
-import com.sri.jfreecell.event.MenuActionListener;
-import com.sri.jfreecell.util.ImageUtil;
-
-import java.awt.Dimension;
-
-
-import javax.swing.*;
+import static com.sri.jfreecell.event.MenuActionListener.MenuAction.*;
+import static com.sri.jfreecell.util.FileUtil.*;
+import static java.awt.event.ActionEvent.ALT_MASK;
+import static java.awt.event.ActionEvent.CTRL_MASK;
+import static java.awt.event.KeyEvent.*;
+import static javax.swing.JOptionPane.*;
 
 
 
@@ -77,7 +27,7 @@ import javax.swing.*;
  * Main class for FreeCell. Free Cell solitaire program. Main program / JFrame.
  * Adds a few components and the main graphics area, UICardPanel, that handles
  * the mouse and painting.
- * 
+ *
  * @author Sateesh Gampala
  * @version 5.0.1
  */
@@ -89,12 +39,11 @@ public class UIFreeCell extends JFrame {
     JLabel label1 = new JLabel("                                  Pilha de descanso                                                                             Pilha de descarte",  JLabel.LEFT);
     private static final Color BACKGROUND_COLOR = new Color(0, 110, 135);
 
-    
+
     public GameModel model;
 
     public static final String version = "5.2.10";
 
-    private UICardPanel boardDisplay;
     private JLabel cardCount;
 
     private static final int PORT = 6789;
@@ -102,11 +51,7 @@ public class UIFreeCell extends JFrame {
 
     public static void main(String[] args) {
         checkIfRunning();
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        checkLoadWindowsStyle();
 
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -115,9 +60,19 @@ public class UIFreeCell extends JFrame {
         });
     }
 
+    private static void checkLoadWindowsStyle() {
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            try {
+                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public UIFreeCell() {
         checkAndLoadGame();
-        boardDisplay = new UICardPanel(model);
+        UICardPanel boardDisplay = new UICardPanel(model);
         model.addGameListener(new GameListenerImpl(this));
 
         cardCount = new JLabel("52 ", SwingConstants.RIGHT);
@@ -128,24 +83,24 @@ public class UIFreeCell extends JFrame {
         label1.setPreferredSize(new Dimension(50, 15));
         label1.setVerticalAlignment(JLabel.TOP);
         label1.setBackground(BACKGROUND_COLOR);
-        label1.setOpaque(true); 
+        label1.setOpaque(true);
         label1.setForeground(Color.white);
         label1.setFont(new Font("Serif", Font.PLAIN, 14));
 
-        
+
         JPanel content = new JPanel();
-        
+
         content.setLayout(new BorderLayout());
         label1.setVisible(true);
         content.add(label1, BorderLayout.NORTH);
-      
+
 
         content.add(controlPanel, BorderLayout.SOUTH);
 
         content.add(boardDisplay, BorderLayout.CENTER);
 
 
-        
+
         setContentPane(content);
         setJMenuBar(createMenu());
         setTitle("FreeCell #" + model.gameNo);
@@ -160,11 +115,11 @@ public class UIFreeCell extends JFrame {
         pack();
         setLocationRelativeTo(null);
         setResizable(true);
-       // setExtendedState(JFrame.MAXIMIZED_BOTH);
+        // setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
         this.model.notifyChanges();
-        
+
     }
 
     private JMenuBar createMenu() {
@@ -192,7 +147,7 @@ public class UIFreeCell extends JFrame {
         createMenuItem(menu, HELP, VK_J, VK_F1, 0);
         createMenuItem(menu, ABOUT, VK_A, 0, 0);
         menuBar.add(menu);
-        
+
         return menuBar;
     }
 
@@ -249,34 +204,34 @@ public class UIFreeCell extends JFrame {
         panel.add(bLabel);
         showMessageDialog(this, panel, "About FreeCell", PLAIN_MESSAGE);
     }
-    
+
     public void showHelp() {
-    	
-    	
-      
-        JLabel bLabel = new JLabel("<html>Características<br>"
-        		+ "Baralhos: 1;<br>"
-        		+ "Dificuldade: Fácil;<br>"
-        		+ "Tempo: Médio;<br>"
-        		+ "Tipo: Habilidade;<br>"
-        		+ "Objetivo<br>"
-        		+ "O objetivo é mover todas as cartas para as fundações em ordem crescente no naipe usando o menor número possível de movimentos.<br>"
-        		+ "<br>"
-        		+ "O jogo<br>"
-        		+ "Fundações<br>"
-        		+ "Existem 4 fundações (canto superior direito);<br>"
-        		+ "As fundações aceitam as cartas em ordem crescente e com o mesmo naipe.<br>"
-        		+ "Células<br>"
-        		+ "São 4 células ao todo (canto superior esquerdo);<br>"
-        		+ "As células vázias são utilizadas como espaços temporários para fazer movimentos de pilhas e para jogadas estratégicas.<br>"
-        		+ "Pilhas<br>"
-        		+ "O jogo tem 8 fundações (parte inferior);<br>"
-        		+ "As cartas nas pilhas devem ser organizadas em sequência decrescente e com cores alternadas;<br>"
-        		+ "Pode-se mover um conjunto de cartas desde que elas estejam em sequência e existam células vazias e/ou espaços vazios para realizar o movimento;<br>"
-        		+ "Pilhas vazias podem ser ocupadas por qualquer carta ou conjunto de cartas em ordem decrescente e com cores alternadas.</html>");
+
+
+
+        JLabel bLabel = new JLabel("<html>CaracterÃ­sticas<br>"
+                + "Baralhos: 1;<br>"
+                + "Dificuldade: FÃ¡cil;<br>"
+                + "Tempo: MÃ©dio;<br>"
+                + "Tipo: Habilidade;<br>"
+                + "Objetivo<br>"
+                + "O objetivo Ã© mover todas as cartas para as fundaÃ§Ãµes em ordem crescente no naipe usando o menor nÃºmero possÃ­vel de movimentos.<br>"
+                + "<br>"
+                + "O jogo<br>"
+                + "FundaÃ§Ãµes<br>"
+                + "Existem 4 fundaÃ§Ãµes (canto superior direito);<br>"
+                + "As fundaÃ§Ãµes aceitam as cartas em ordem crescente e com o mesmo naipe.<br>"
+                + "CÃ©lulas<br>"
+                + "SÃ£o 4 cÃ©lulas ao todo (canto superior esquerdo);<br>"
+                + "As cÃ©lulas vazias sÃ£o utilizadas como espaÃ§os temporÃ¡rios para fazer movimentos de pilhas e para jogadas estratÃ©gicas.<br>"
+                + "Pilhas<br>"
+                + "O jogo tem 8 fundaÃ§Ãµes (parte inferior);<br>"
+                + "As cartas nas pilhas devem ser organizadas em sequÃªncia decrescente e com cores alternadas;<br>"
+                + "Pode-se mover um conjunto de cartas desde que elas estejam em sequÃ©ncia e existam cÃ©lulas vazias e/ou espaÃ§os vazios para realizar o movimento;<br>"
+                + "Pilhas vazias podem ser ocupadas por qualquer carta ou conjunto de cartas em ordem decrescente e com cores alternadas.</html>");
         JPanel panel = new JPanel(new GridLayout(1,0));
         panel.add(bLabel);
-       
+
         showMessageDialog(this, panel, "Help", PLAIN_MESSAGE);
     }
 
@@ -313,7 +268,7 @@ public class UIFreeCell extends JFrame {
         }
         System.exit(0);
     }
-    
+
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
